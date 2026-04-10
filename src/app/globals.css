@@ -1,0 +1,338 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.129 0.042 264.695);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.129 0.042 264.695);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: var(--color-azul-950);
+  --sidebar-foreground: white;
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: var(--color-cian-500);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  /* --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788); */
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@theme inline {
+  /* ============================================
+     OBELISCO-V2 COLOR PALETTE
+     https://gcba.github.io/Obelisco-V2/components/colors
+     ============================================ */
+
+  /* Amarillo / Yellow */
+  --color-amarillo-50: #fffae5;
+  --color-amarillo-100: #fff5cc;
+  --color-amarillo-200: #ffeb99;
+  --color-amarillo-300: #ffe066;
+  --color-amarillo-400: #ffd633;
+  --color-amarillo-500: #ffcc00;
+  --color-amarillo-600: #cca300;
+  --color-amarillo-700: #997a00;
+  --color-amarillo-800: #665200;
+  --color-amarillo-900: #332900;
+  --color-amarillo-950: #1a1500;
+
+  /* Naranja / Orange */
+  --color-naranja-50: #fff4e5;
+  --color-naranja-100: #ffeacc;
+  --color-naranja-200: #ffd599;
+  --color-naranja-300: #ffbf66;
+  --color-naranja-400: #ffaa33;
+  --color-naranja-500: #ff9500;
+  --color-naranja-600: #cc7700;
+  --color-naranja-700: #995900;
+  --color-naranja-800: #663c00;
+  --color-naranja-900: #331e00;
+  --color-naranja-950: #1a0f00;
+
+  /* Rojo / Red */
+  --color-rojo-50: #fbefef;
+  --color-rojo-100: #f5d6d6;
+  --color-rojo-200: #ebadad;
+  --color-rojo-300: #ea8585;
+  --color-rojo-400: #d65c5c;
+  --color-rojo-500: #cc3333;
+  --color-rojo-600: #a32929;
+  --color-rojo-700: #7a1f1f;
+  --color-rojo-800: #521414;
+  --color-rojo-900: #290a0a;
+  --color-rojo-950: #1a0f00;
+
+  /* Violeta / Purple */
+  --color-violeta-50: #f7e5ff;
+  --color-violeta-100: #f0ccff;
+  --color-violeta-200: #e299ff;
+  --color-violeta-300: #d366ff;
+  --color-violeta-400: #c433ff;
+  --color-violeta-500: #b600ff;
+  --color-violeta-600: #9100cc;
+  --color-violeta-700: #6d0099;
+  --color-violeta-800: #490066;
+  --color-violeta-900: #240033;
+  --color-violeta-950: #12001a;
+
+  /* Azul / Blue */
+  --color-azul-50: #ecf0f9;
+  --color-azul-100: #d9e2f2;
+  --color-azul-200: #adc3eb;
+  --color-azul-300: #85a5e0;
+  --color-azul-400: #5c88d6;
+  --color-azul-500: #336acc;
+  --color-azul-600: #2e569e;
+  --color-azul-700: #274986;
+  --color-azul-800: #1c345f;
+  --color-azul-900: #101e37;
+  --color-azul-950: #080f1c;
+
+  /* Cielo / Sky */
+  --color-cielo-50: #e5f9ff;
+  --color-cielo-100: #ccf3ff;
+  --color-cielo-200: #99e8ff;
+  --color-cielo-300: #66dcff;
+  --color-cielo-400: #33d1ff;
+  --color-cielo-500: #00c5ff;
+  --color-cielo-600: #0086ad;
+  --color-cielo-700: #005e7a;
+  --color-cielo-800: #004357;
+  --color-cielo-900: #002733;
+  --color-cielo-950: #001419;
+
+  /* Cian / Cyan */
+  --color-cian-50: #f3fcfb;
+  --color-cian-100: #e2f8f5;
+  --color-cian-200: #caf2ec;
+  --color-cian-300: #adebe2;
+  --color-cian-400: #8de2d6;
+  --color-cian-500: #64d8c8;
+  --color-cian-600: #3cceb8;
+  --color-cian-700: #2bab98;
+  --color-cian-800: #218274;
+  --color-cian-900: #10413a;
+  --color-cian-950: #08211d;
+
+  /* Verde / Green */
+  --color-verde-50: #f2fbf5;
+  --color-verde-100: #e0f8e9;
+  --color-verde-200: #c3efd3;
+  --color-verde-300: #94e1b0;
+  --color-verde-400: #5eca85;
+  --color-verde-500: #38af64;
+  --color-verde-600: #26874a;
+  --color-verde-700: #237240;
+  --color-verde-800: #205b36;
+  --color-verde-900: #1c4b2d;
+  --color-verde-950: #0a2915;
+
+  /* Grisulado / Slate */
+  --color-grisulado-50: #f3f6f9;
+  --color-grisulado-100: #e6ebf0;
+  --color-grisulado-200: #d1d8e0;
+  --color-grisulado-300: #b8c1cc;
+  --color-grisulado-400: #9eaab8;
+  --color-grisulado-500: #8a97a8;
+  --color-grisulado-600: #69788a;
+  --color-grisulado-700: #5c6a7a;
+  --color-grisulado-800: #505e70;
+  --color-grisulado-900: #425266;
+  --color-grisulado-950: #38485c;
+  --color-grisulado-1000: #153244;
+  /* Custom: footer/dark elements */
+
+  /* Escala de Grises / Grayscale */
+  --color-gris-0: #ffffff;
+  --color-gris-50: #f2f2f2;
+  --color-gris-100: #e5e5e5;
+  --color-gris-200: #cccccc;
+  --color-gris-300: #b2b2b2;
+  --color-gris-400: #999999;
+  --color-gris-500: #8a97a8;
+  --color-gris-600: #666666;
+  --color-gris-700: #4c4c4c;
+  --color-gris-800: #333333;
+  --color-gris-900: #191919;
+  --color-gris-950: #000000;
+
+  --color-light-default: #f5f9fc;
+  --color-light-hover: #e5f1f9;
+
+  /* Colores para graficos */
+
+  --color-graph-verde-1: #d8feec;
+  --color-graph-verde-2: #c3ead5;
+  --color-graph-verde-3: #a0ebcb;
+  --color-graph-verde-4: #5eccb8;
+  --color-graph-verde-5: #38a78c;
+  --color-graph-verde-6: #108065;
+  --color-graph-verde-7: #15374a;
+  --color-graph-verde-8: #024440;
+
+  --color-graph-naranja: #f8cfbe;
+  --color-graph-naranja-2: #eab292;
+  --color-graph-naranja-3: #da7c67;
+  --color-graph-naranja-4: #c66339;
+  --color-graph-naranja-5: #ac5f05;
+  --color-graph-naranja-6: #844904;
+
+  --color-graph-rosa-1: #ffdcf1;
+  --color-graph-rosa-2: #fab0dc;
+  --color-graph-rosa-3: #f591bb;
+  --color-graph-rosa-4: #d67497;
+  --color-graph-rosa-5: #b85981;
+  --color-graph-rosa-6: #a03b5f;
+  --color-graph-rosa-7: #77404d;
+  --color-graph-rosa-8: #5d2835;
+
+  --color-graph-mostaza: #e3c655;
+}
+
+body,
+html {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-nunito);
+  background-color: #f3f6f9;
+  @apply text-grisulado-950;
+}
+
+.box-shadow-google {
+  box-shadow: 1px 2px 5px #bfbfbf;
+}
+
+.shadow-caba_css {
+  box-shadow: 0px 3px 6px #00000029;
+}
+
+.public-layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}
+
+.auth-layout {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+}

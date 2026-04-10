@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model roles {
+  id         Int      @id @default(autoincrement())
+  name       String   @unique(map: "name")
+  created_at DateTime @default(now())
+  label      String
+  value      String
+  users      users[]
+}
+
+model users {
+  id            Int       @id @default(autoincrement())
+  full_name     String
+  email         String    @unique(map: "email")
+  role_id       Int       @default(4)
+  google_id     String?   @unique(map: "google_id")
+  image_url     String?
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @default(now())
+  deleted_at    DateTime?
+  last_login_at DateTime?
+  roles         roles     @relation(fields: [role_id], references: [id], onUpdate: Restrict, map: "fk_users_roles")
+
+  @@index([role_id], map: "idx_users_role_id")
+}
+
+model areas {
+  id        Int         @id @default(autoincrement())
+  nombre    String
+  acronimo  String?     @unique
+  proyectos proyectos[]
+}
+
+model contrato_proyectos {
+  id                Int           @id @default(autoincrement())
+  contrato_id       Int
+  proyecto_id       Int
+  horas_proyectadas Int
+  contratos         contratos     @relation(fields: [contrato_id], references: [id], onDelete: Cascade, map: "fk_cp_contrato")
+  proyectos         proyectos     @relation(fields: [proyecto_id], references: [id], onUpdate: Restrict, map: "fk_cp_proyecto")
+  uso_mensual       uso_mensual[]
+
+  @@unique([contrato_id, proyecto_id], map: "uq_contrato_proyecto")
+  @@index([contrato_id], map: "idx_cp_contrato")
+  @@index([proyecto_id], map: "idx_cp_proyecto")
+}
+
+model uso_mensual {
+  id                   Int                @id @default(autoincrement())
+  contrato_proyecto_id Int
+  anio                 Int
+  mes                  Int
+  horas_estimadas      Int?
+  horas_reales         Int?
+  contrato_proyectos   contrato_proyectos @relation(fields: [contrato_proyecto_id], references: [id], onDelete: Cascade, map: "fk_uso_mensual_cp")
+
+  @@unique([contrato_proyecto_id, anio, mes], map: "uq_uso_mensual")
+  @@index([contrato_proyecto_id], map: "idx_uso_mensual_cp")
+}
+
+model contratos {
+  id                    Int                    @id @default(autoincrement())
+  nombre                String
+  numero_expediente     String                 @unique
+  proveedor_id          Int
+  fecha_inicio          DateTime
+  fecha_fin             DateTime
+  cantidad_horas        Int
+  valor_hora            Decimal?
+  es_accesoridad        Boolean?
+  contrato_principal_id Int?
+  observaciones         String?
+  proveedores           proveedores            @relation(fields: [proveedor_id], references: [id], onUpdate: Restrict, map: "fk_contratos_proveedor")
+  contrato_principal    contratos?             @relation("accesoridad", fields: [contrato_principal_id], references: [id])
+  accesorios            contratos[]            @relation("accesoridad")
+  proyectos             contrato_proyectos[]
+  prorrogas             contrato_prorrogas[]
+  incrementos           contrato_incrementos[]
+
+  @@index([proveedor_id], map: "idx_contratos_proveedor")
+  @@index([contrato_principal_id], map: "idx_contratos_principal")
+}
+
+model contrato_prorrogas {
+  id                Int       @id @default(autoincrement())
+  contrato_id       Int
+  numero_expediente String?
+  fecha_fin         DateTime
+  observacion       String?
+  created_at        DateTime  @default(now())
+  contratos         contratos @relation(fields: [contrato_id], references: [id], onDelete: Cascade, map: "fk_prorrogas_contrato")
+
+  @@index([contrato_id], map: "idx_prorrogas_contrato")
+}
+
+model contrato_incrementos {
+  id                Int       @id @default(autoincrement())
+  contrato_id       Int
+  horas_extra       Int
+  numero_expediente String?
+  observacion       String?
+  created_at        DateTime  @default(now())
+  contratos         contratos @relation(fields: [contrato_id], references: [id], onDelete: Cascade, map: "fk_incrementos_contrato")
+
+  @@index([contrato_id], map: "idx_incrementos_contrato")
+}
+
+model proveedores {
+  id         Int         @id @default(autoincrement())
+  label      String
+  value      String      @unique
+  created_at DateTime    @default(now())
+  updated_at DateTime    @default(now())
+  deleted_at DateTime?
+  contratos  contratos[]
+}
+
+model proyectos {
+  id                     Int                  @id @default(autoincrement())
+  nombre                 String
+  estado_id              Int
+  estado_contratacion_id Int                  @default(1)
+  area_id                Int
+  contrato_proyectos     contrato_proyectos[]
+  areas                  areas                @relation(fields: [area_id], references: [id], onUpdate: Restrict, map: "fk_proyectos_area")
+
+  @@index([area_id], map: "idx_proyectos_area")
+}
