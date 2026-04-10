@@ -31,14 +31,20 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return false; // 🚫 403 — no está en la tabla de usuarios
       }
 
-      await prisma.users.update({
-        where: { id: dbUser.id },
-        data: {
-          ...(dbUser.google_id ? {} : { google_id: googleId }),
-          image_url: user.image,
-          last_login_at: new Date(),
-        },
-      });
+      await prisma.$transaction([
+        prisma.users.update({
+          where: { id: dbUser.id },
+          data: {
+            ...(dbUser.google_id ? {} : { google_id: googleId }),
+            image_url: user.image,
+          },
+        }),
+        prisma.$executeRaw`
+          UPDATE "users"
+          SET "last_login_at" = (CURRENT_TIMESTAMP AT TIME ZONE 'America/Argentina/Buenos_Aires')
+          WHERE "id" = ${dbUser.id}
+        `,
+      ]);
 
       return true;
     },
