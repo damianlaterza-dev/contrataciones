@@ -100,7 +100,7 @@ export function ContratoFormModal({ open, onClose }: Props) {
       fecha_inicio: "",
       fecha_fin: "",
       cantidad_horas: undefined,
-      valor_hora: "",
+      valor_hora: undefined,
       observaciones: "",
     });
     onClose();
