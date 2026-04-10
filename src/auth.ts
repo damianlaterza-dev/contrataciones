@@ -18,23 +18,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
       const googleId = account.providerAccountId;
 
-      const dbUser = await prisma.users.findFirst({
-        where: {
-          google_id: googleId,
-          deleted_at: null,
-        },
-      });
-      // FOR DEVELOPMENT ONLY
+      // Buscar por google_id primero, luego por email (usuario creado manualmente sin google_id)
+      const dbUser =
+        (await prisma.users.findFirst({
+          where: { google_id: googleId, deleted_at: null },
+        })) ??
+        (await prisma.users.findFirst({
+          where: { email: user.email!, deleted_at: null },
+        }));
+
       if (!dbUser) {
-        if (process.env.NODE_ENV === "development") {
-          return true;
-        }
-        return false; // 🚫 403
+        return false; // 🚫 403 — no está en la tabla de usuarios
       }
 
       await prisma.users.update({
         where: { id: dbUser.id },
         data: {
+          google_id: googleId, // vincula si vino por email
           image_url: user.image,
           last_login_at: new Date(),
         },
