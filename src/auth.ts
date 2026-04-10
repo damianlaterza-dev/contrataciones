@@ -34,7 +34,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       await prisma.users.update({
         where: { id: dbUser.id },
         data: {
-          google_id: googleId, // vincula si vino por email
+          ...(dbUser.google_id ? {} : { google_id: googleId }),
           image_url: user.image,
           last_login_at: new Date(),
         },
