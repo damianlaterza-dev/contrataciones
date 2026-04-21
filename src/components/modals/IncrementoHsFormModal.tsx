@@ -108,7 +108,7 @@ export function IncrementoHsFormModal({ contrato, open, onClose }: Props) {
               aria-invalid={!!form.formState.errors.horas_extra}
               id="horas_extra"
               type="text"
-              inputMode="numeric"
+              inputMode="decimal"
               placeholder="200"
               {...form.register("horas_extra", {
                 setValueAs: (v) =>

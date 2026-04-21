@@ -165,9 +165,9 @@ export default function ProyectosPage({
         queryKey: ["contratos-select"],
         queryFn: async (): Promise<ContratoSelectOption[]> => {
           const res = await fetch("/api/contratos?for_select=true");
+          if (!res.ok) throw new Error("Failed to fetch contratos");
           return res.json();
         },
-        enabled: isNewOpen,
         staleTime: 60 * 1000,
       },
     ],

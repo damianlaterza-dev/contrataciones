@@ -16,9 +16,8 @@ export const contratoStep1Schema = z.object({
   fecha_inicio: z.string().min(1, "La fecha de inicio es requerida"),
   fecha_fin: z.string().min(1, "La fecha de fin es requerida"),
   cantidad_horas: z
-    .number({ error: "Debe ser un número entero" })
-    .int()
-    .min(1, "Debe ser mayor a 0"),
+    .number({ error: "Debe ser un número válido" })
+    .positive("Debe ser mayor a 0"),
   valor_hora: z.number().positive("Debe ser mayor a 0").optional().nullable(),
   es_accesoridad: z.boolean().nullable(),
   contrato_principal_id: z.number().int().positive().optional().nullable(),
@@ -43,9 +42,8 @@ export const prorrogaSchema = z.object({
 export const incrementoSchema = z.object({
   contrato_id: z.number().int().positive("El contrato es requerido"),
   horas_extra: z
-    .number({ error: "Debe ser un número" })
-    .int()
-    .min(1, "Debe ser mayor a 0"),
+    .number({ error: "Debe ser un número válido" })
+    .positive("Debe ser mayor a 0"),
   numero_expediente: z
     .string()
     .min(1, "El número de expediente es requerido")

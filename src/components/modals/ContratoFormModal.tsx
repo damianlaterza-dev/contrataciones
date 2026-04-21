@@ -285,7 +285,7 @@ export function ContratoFormModal({ open, onClose }: Props) {
             <Input
               id="cantidad_horas"
               type="text"
-              inputMode="numeric"
+              inputMode="decimal"
               placeholder="1200"
               {...form.register("cantidad_horas", {
                 setValueAs: (value) => {
@@ -313,7 +313,7 @@ export function ContratoFormModal({ open, onClose }: Props) {
             <Input
               id="valor_hora"
               type="text"
-              inputMode="numeric"
+              inputMode="decimal"
               placeholder="1500.00"
               {...form.register("valor_hora", {
                 setValueAs: (v) =>
