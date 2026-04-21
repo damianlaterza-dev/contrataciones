@@ -5,7 +5,6 @@ const usoMensualItemSchema = z.object({
   mes: z.number().int().min(1).max(12),
   horas_estimadas: z
     .number({ error: "Ingresá un valor válido" })
-    .int()
     .positive("Debe ser mayor a 0")
     .optional(),
 });
@@ -26,7 +25,6 @@ export const proyectoSchema = z
       .positive("El contrato es requerido"),
     horas_proyectadas: z
       .number({ error: "Ingresá un valor válido" })
-      .int()
       .positive("Debe ser mayor a 0"),
     uso_mensual: z
       .array(usoMensualItemSchema)
@@ -56,11 +54,12 @@ export const proyectoSchema = z
   .refine(
     (data) => {
       if (!data.horas_proyectadas) return true;
-      const total = (data.uso_mensual ?? []).reduce(
-        (sum, u) => sum + (u.horas_estimadas ?? 0),
-        0,
+      const total = parseFloat(
+        (data.uso_mensual ?? [])
+          .reduce((sum, u) => sum + (u.horas_estimadas ?? 0), 0)
+          .toFixed(6),
       );
-      return total === data.horas_proyectadas;
+      return Math.abs(total - data.horas_proyectadas) < 0.001;
     },
     {
       message:

@@ -141,7 +141,7 @@ export function UsoMensualModal({
             <Input
               id="horas-reales"
               type="text"
-              inputMode="numeric"
+              inputMode="decimal"
               aria-invalid={realesInvalid}
               value={reales}
               onChange={(event) => setReales(event.target.value)}

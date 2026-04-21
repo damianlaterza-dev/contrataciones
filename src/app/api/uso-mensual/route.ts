@@ -14,7 +14,6 @@ function isValidNullableHours(value: unknown) {
   return (
     value === null ||
     (typeof value === "number" &&
-      Number.isInteger(value) &&
       Number.isFinite(value) &&
       value >= 0 &&
       value <= MAX_HORAS)

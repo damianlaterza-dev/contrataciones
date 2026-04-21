@@ -43,7 +43,7 @@ model contrato_proyectos {
   id                Int           @id @default(autoincrement())
   contrato_id       Int
   proyecto_id       Int
-  horas_proyectadas Int
+  horas_proyectadas Float
   contratos         contratos     @relation(fields: [contrato_id], references: [id], onDelete: Cascade, map: "fk_cp_contrato")
   proyectos         proyectos     @relation(fields: [proyecto_id], references: [id], onUpdate: Restrict, map: "fk_cp_proyecto")
   uso_mensual       uso_mensual[]
@@ -58,8 +58,8 @@ model uso_mensual {
   contrato_proyecto_id Int
   anio                 Int
   mes                  Int
-  horas_estimadas      Int?
-  horas_reales         Int?
+  horas_estimadas      Float?
+  horas_reales         Float?
   contrato_proyectos   contrato_proyectos @relation(fields: [contrato_proyecto_id], references: [id], onDelete: Cascade, map: "fk_uso_mensual_cp")
 
   @@unique([contrato_proyecto_id, anio, mes], map: "uq_uso_mensual")
@@ -73,7 +73,7 @@ model contratos {
   proveedor_id          Int
   fecha_inicio          DateTime
   fecha_fin             DateTime
-  cantidad_horas        Int
+  cantidad_horas        Float
   valor_hora            Decimal?
   es_accesoridad        Boolean?
   contrato_principal_id Int?
@@ -104,7 +104,7 @@ model contrato_prorrogas {
 model contrato_incrementos {
   id                Int       @id @default(autoincrement())
   contrato_id       Int
-  horas_extra       Int
+  horas_extra       Float
   numero_expediente String?
   observacion       String?
   created_at        DateTime  @default(now())

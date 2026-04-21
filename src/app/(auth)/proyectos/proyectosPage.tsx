@@ -187,14 +187,17 @@ export default function ProyectosPage({
     horasProyectadasWatch != null && horasProyectadasWatch > horasDisponibles;
 
   const usoMensualWatch = watch("uso_mensual");
-  const totalDistribuido = (usoMensualWatch ?? []).reduce(
-    (sum, u) => sum + (u.horas_estimadas ?? 0),
-    0,
+  const totalDistribuido = parseFloat(
+    (usoMensualWatch ?? [])
+      .reduce((sum, u) => sum + (u.horas_estimadas ?? 0), 0)
+      .toFixed(6),
   );
   const excedeMensual =
-    horasProyectadasWatch > 0 && totalDistribuido > horasProyectadasWatch;
+    horasProyectadasWatch > 0 &&
+    totalDistribuido - horasProyectadasWatch > 0.001;
   const faltaDistribuir =
-    horasProyectadasWatch > 0 && totalDistribuido < horasProyectadasWatch;
+    horasProyectadasWatch > 0 &&
+    horasProyectadasWatch - totalDistribuido > 0.001;
 
   if (isLoading || !data)
     return (
@@ -599,7 +602,7 @@ export default function ProyectosPage({
                           </FieldLabel>
                           <Input
                             type="text"
-                            inputMode="numeric"
+                            inputMode="decimal"
                             placeholder="Ej: 40"
                             aria-invalid={!!fieldError}
                             {...register(
@@ -627,9 +630,15 @@ export default function ProyectosPage({
                         Total distribuido:{" "}
                         <span
                           className={`font-medium ${excedeMensual ? "text-rojo-500" : "text-foreground"}`}>
-                          {totalDistribuido}
+                          {totalDistribuido.toLocaleString("es-AR", {
+                            maximumFractionDigits: 2,
+                          })}
                         </span>{" "}
-                        / {horasProyectadasWatch} hs
+                        /{" "}
+                        {horasProyectadasWatch.toLocaleString("es-AR", {
+                          maximumFractionDigits: 2,
+                        })}{" "}
+                        hs
                       </p>
                       {excedeMensual && (
                         <div className="flex items-center justify-end gap-1 text-rojo-500">
@@ -642,7 +651,14 @@ export default function ProyectosPage({
                           </svg>
                           <p>
                             Superás las horas proyectadas por{" "}
-                            {totalDistribuido - horasProyectadasWatch} hs
+                            {parseFloat(
+                              (totalDistribuido - horasProyectadasWatch).toFixed(
+                                6,
+                              ),
+                            ).toLocaleString("es-AR", {
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            hs
                           </p>
                         </div>
                       )}
@@ -659,7 +675,14 @@ export default function ProyectosPage({
                           </svg>
                           <p>
                             Faltan distribuir{" "}
-                            {horasProyectadasWatch - totalDistribuido} hs
+                            {parseFloat(
+                              (horasProyectadasWatch - totalDistribuido).toFixed(
+                                6,
+                              ),
+                            ).toLocaleString("es-AR", {
+                              maximumFractionDigits: 2,
+                            })}{" "}
+                            hs
                           </p>
                         </div>
                       )}
