@@ -46,16 +46,18 @@ import { proveedores } from "@prisma/client";
 
 const COLORS = [
   "bg-azul-100 text-azul-700",
-  "bg-cian-100 text-cian-700",
   "bg-verde-100 text-verde-700",
   "bg-pink-100 text-pink-700",
   "bg-violeta-100 text-violeta-700",
   "bg-violet-100 text-violet-700",
   "bg-amarillo-100 text-amarillo-700",
   "bg-rojo-100 text-rojo-700",
+  "bg-cian-100 text-cian-700",
   "bg-naranja-100 text-naranja-700",
   "bg-rose-100 text-rose-700",
   "bg-cielo-100 text-cielo-700",
+  "bg-fucsia-100 text-fucsia-700",
+  "bg-cyan-100 text-cyan-700",
 ];
 
 function hashStr(str: string): number {
@@ -248,28 +250,28 @@ export default function ProveedoresPage({
                   </InputGroupAddon>
                 </InputGroup>
               </Field>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    id="show-deleted"
-                    checked={showDeleted}
-                    onCheckedChange={setShowDeleted}
-                  />
-                  <label
-                    htmlFor="show-deleted"
-                    className="text-sm text-muted-foreground cursor-pointer select-none"
-                  >
-                    Ver dados de baja
-                  </label>
-                </div>
-                <Button variant="primary" onClick={() => setIsOpen(true)}>
-                  Agregar proveedor
-                </Button>
-              </div>
+              <Button variant="primary" onClick={() => setIsOpen(true)}>
+                Agregar proveedor
+              </Button>
             </div>
           </div>
           <div className="col-span-12">
-            <h2 className="text-lg font-medium my-4">Activos</h2>
+            <div className="flex items-center justify-between gap-4">
+              <h2 className="text-lg font-medium my-4">Activos</h2>
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="show-deleted"
+                  checked={showDeleted}
+                  onCheckedChange={setShowDeleted}
+                />
+                <label
+                  htmlFor="show-deleted"
+                  className="text-sm text-muted-foreground cursor-pointer select-none"
+                >
+                  Ver dados de baja
+                </label>
+              </div>
+            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {activeProviders.map((provider) => (
                 <ProviderCard

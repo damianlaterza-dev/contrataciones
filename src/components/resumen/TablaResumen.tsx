@@ -37,6 +37,8 @@ type ProyectoRow = {
   proyecto_id: number;
   nombre: string;
   horas_proyectadas: number;
+  fecha_inicio: string;
+  fecha_fin_vigente: string;
   meses: MesData[];
 };
 
@@ -69,7 +71,7 @@ type ModalState = {
   horas_reales?: number | null;
 };
 
-function getMesesValidos(
+function getMesesValidosContrato(
   contrato: Pick<ContratoResumen, "fecha_inicio" | "fecha_fin" | "prorrogas">,
   anio: number,
 ): Set<number> {
@@ -83,7 +85,25 @@ function getMesesValidos(
   const valid = new Set<number>();
   for (let mes = 1; mes <= 12; mes++) {
     const inicioMes = new Date(anio, mes - 1, 1);
-    const finMes = new Date(anio, mes, 0); // último día del mes
+    const finMes = new Date(anio, mes, 0);
+    if (inicioMes <= fechaFinVigente && finMes >= fechaInicio) {
+      valid.add(mes);
+    }
+  }
+  return valid;
+}
+
+function getMesesValidosProyecto(
+  proyecto: Pick<ProyectoRow, "fecha_inicio" | "fecha_fin_vigente">,
+  anio: number,
+): Set<number> {
+  const fechaInicio = new Date(proyecto.fecha_inicio);
+  const fechaFinVigente = new Date(proyecto.fecha_fin_vigente);
+
+  const valid = new Set<number>();
+  for (let mes = 1; mes <= 12; mes++) {
+    const inicioMes = new Date(anio, mes - 1, 1);
+    const finMes = new Date(anio, mes, 0);
     if (inicioMes <= fechaFinVigente && finMes >= fechaInicio) {
       valid.add(mes);
     }
@@ -134,7 +154,7 @@ export function TablaResumen({ contratos, anio }: Props) {
         // defaultValue={contratos.map((c) => String(c.id))}
       >
         {contratos.map((contrato) => {
-          const mesesValidos = getMesesValidos(contrato, anio);
+          const mesesValidosContrato = getMesesValidosContrato(contrato, anio);
           const progreso =
             contrato.cantidad_horas > 0
               ? Math.min(
@@ -241,6 +261,7 @@ export function TablaResumen({ contratos, anio }: Props) {
 
                     <tbody>
                       {contrato.proyectos.map((row) => {
+                        const mesesValidosProyecto = getMesesValidosProyecto(row, anio);
                         const subtotalReal = row.meses.reduce(
                           (sum, m) => sum + (m.horas_reales ?? 0),
                           0,
@@ -276,7 +297,7 @@ export function TablaResumen({ contratos, anio }: Props) {
                             </td>
                             {MESES_ABREV.map((_, index) => {
                               const mes = index + 1;
-                              const esValido = mesesValidos.has(mes);
+                              const esValido = mesesValidosProyecto.has(mes);
 
                               if (!esValido) {
                                 return (
@@ -389,7 +410,7 @@ export function TablaResumen({ contratos, anio }: Props) {
                         </td>
                         {MESES_ABREV.map((_, index) => {
                           const mes = index + 1;
-                          const esValido = mesesValidos.has(mes);
+                          const esValido = mesesValidosContrato.has(mes);
 
                           if (!esValido) {
                             return (

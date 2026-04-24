@@ -27,6 +27,8 @@ type ProyectoResumen = {
   proyecto_id: number;
   nombre: string;
   horas_proyectadas: number;
+  fecha_inicio: string;
+  fecha_fin_vigente: string;
   meses: {
     mes: number;
     horas_estimadas: number | null;

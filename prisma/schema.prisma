@@ -125,13 +125,28 @@ model proveedores {
 }
 
 model proyectos {
-  id                     Int                  @id @default(autoincrement())
+  id                     Int                    @id @default(autoincrement())
   nombre                 String
   estado_id              Int
-  estado_contratacion_id Int                  @default(1)
+  estado_contratacion_id Int                    @default(1)
   area_id                Int
+  fecha_inicio           DateTime
+  fecha_fin              DateTime
   contrato_proyectos     contrato_proyectos[]
-  areas                  areas                @relation(fields: [area_id], references: [id], onUpdate: Restrict, map: "fk_proyectos_area")
+  proyecto_prorrogas     proyecto_prorrogas[]
+  areas                  areas                  @relation(fields: [area_id], references: [id], onUpdate: Restrict, map: "fk_proyectos_area")
 
   @@index([area_id], map: "idx_proyectos_area")
+}
+
+model proyecto_prorrogas {
+  id                Int       @id @default(autoincrement())
+  proyecto_id       Int
+  numero_expediente String?
+  fecha_fin         DateTime
+  observacion       String?
+  created_at        DateTime  @default(now())
+  proyectos         proyectos @relation(fields: [proyecto_id], references: [id], onDelete: Cascade)
+
+  @@index([proyecto_id], map: "idx_prorrogas_proyecto")
 }

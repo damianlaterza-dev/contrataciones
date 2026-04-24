@@ -36,7 +36,16 @@ export async function GET(request: Request) {
             id: true,
             horas_proyectadas: true,
             proyectos: {
-              select: { id: true, nombre: true },
+              select: {
+                id: true,
+                nombre: true,
+                fecha_inicio: true,
+                fecha_fin: true,
+                proyecto_prorrogas: {
+                  select: { fecha_fin: true },
+                  orderBy: { created_at: "asc" },
+                },
+              },
             },
             uso_mensual: {
               where: { anio },
@@ -83,13 +92,19 @@ export async function GET(request: Request) {
         horas_proyectadas_total,
         horas_reales_total,
         porcentaje_proyectado,
-        proyectos: contrato.proyectos.map((cp) => ({
-          contrato_proyecto_id: cp.id,
-          proyecto_id: cp.proyectos.id,
-          nombre: cp.proyectos.nombre,
-          horas_proyectadas: cp.horas_proyectadas,
-          meses: cp.uso_mensual.sort((a, b) => a.mes - b.mes),
-        })),
+        proyectos: contrato.proyectos.map((cp) => {
+          const ultimaProrroga = cp.proyectos.proyecto_prorrogas.at(-1);
+          const fecha_fin_vigente = ultimaProrroga?.fecha_fin ?? cp.proyectos.fecha_fin;
+          return {
+            contrato_proyecto_id: cp.id,
+            proyecto_id: cp.proyectos.id,
+            nombre: cp.proyectos.nombre,
+            horas_proyectadas: cp.horas_proyectadas,
+            fecha_inicio: cp.proyectos.fecha_inicio.toISOString().slice(0, 10),
+            fecha_fin_vigente: fecha_fin_vigente.toISOString().slice(0, 10),
+            meses: cp.uso_mensual.sort((a, b) => a.mes - b.mes),
+          };
+        }),
       };
     });
 

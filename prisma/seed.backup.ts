@@ -82,12 +82,16 @@ async function main() {
         estado_id: 2,
         estado_contratacion_id: 1,
         area_id: ssgda.id,
+        fecha_inicio: new Date("2025-01-01"),
+        fecha_fin: new Date("2025-12-31"),
       },
       {
         nombre: "Proyecto Beta",
         estado_id: 2,
         estado_contratacion_id: 1,
         area_id: sstedu.id,
+        fecha_inicio: new Date("2025-01-01"),
+        fecha_fin: new Date("2025-12-31"),
       },
     ],
   });

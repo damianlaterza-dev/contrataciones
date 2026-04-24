@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { TProyecto } from "@/components/datatable/proyectos/columns";
-import { Proyectoscolumns } from "@/components/datatable/proyectos/columns";
+import { TProyecto, getProyectosColumns } from "@/components/datatable/proyectos/columns";
 import { DataTable } from "@/components/datatable/DataTable";
 import Pagination from "@/components/datatable/pagination/Pagination";
 import { Spinner } from "@/components/spinner/Spinner";
@@ -40,6 +39,16 @@ import { createProyecto } from "@/actions/proyectos";
 import { toast } from "sonner";
 import { Toast } from "@/components/toast/Toast";
 import { Badge } from "@/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+import { ProyectoProrrogaFormModal } from "@/components/modals/ProyectoProrrogaFormModal";
 
 type Area = {
   id: number;
@@ -71,24 +80,18 @@ const MESES = [
   "Diciembre",
 ];
 
-function getMonthsFromContrato(contrato: ContratoSelectOption) {
+function getContratoFechaFinVigente(contrato: ContratoSelectOption): Date {
   const fechaFin = new Date(contrato.fecha_fin);
-  const fechaFinVigente = contrato.prorrogas.reduce((max, p) => {
+  return contrato.prorrogas.reduce((max, p) => {
     const d = new Date(p.fecha_fin);
     return d > max ? d : max;
   }, fechaFin);
+}
 
+function getMonthsFromRange(fechaInicio: Date, fechaFin: Date) {
   const months: { anio: number; mes: number }[] = [];
-  const current = new Date(
-    new Date(contrato.fecha_inicio).getFullYear(),
-    new Date(contrato.fecha_inicio).getMonth(),
-    1,
-  );
-  const end = new Date(
-    fechaFinVigente.getFullYear(),
-    fechaFinVigente.getMonth(),
-    1,
-  );
+  const current = new Date(fechaInicio.getFullYear(), fechaInicio.getMonth(), 1);
+  const end = new Date(fechaFin.getFullYear(), fechaFin.getMonth(), 1);
   while (current <= end) {
     months.push({ anio: current.getFullYear(), mes: current.getMonth() + 1 });
     current.setMonth(current.getMonth() + 1);
@@ -111,6 +114,14 @@ export default function ProyectosPage({
   const [uiFilters, setUiFilters] = useState<UIProyectosFilters>({});
   const [isPending, startTransition] = useTransition();
 
+  const [proyectoParaProrroga, setProyectoParaProrroga] = useState<TProyecto | null>(null);
+
+  // Date picker state for new project form
+  const [fechaInicioDate, setFechaInicioDate] = useState<Date | undefined>();
+  const [fechaFinDate, setFechaFinDate] = useState<Date | undefined>();
+  const [openFechaInicio, setOpenFechaInicio] = useState(false);
+  const [openFechaFin, setOpenFechaFin] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -127,12 +138,16 @@ export default function ProyectosPage({
       area_id: undefined,
       contrato_id: undefined,
       horas_proyectadas: undefined,
+      fecha_inicio: "",
+      fecha_fin: "",
       uso_mensual: [],
     },
   });
 
   const contratoIdWatch = watch("contrato_id");
   const horasProyectadasWatch = watch("horas_proyectadas");
+  const fechaInicioWatch = watch("fecha_inicio");
+  const fechaFinWatch = watch("fecha_fin");
 
   const { fields, replace } = useFieldArray({ control, name: "uso_mensual" });
 
@@ -178,13 +193,21 @@ export default function ProyectosPage({
     id: Number(id),
     label: config.label,
   }));
-  const { data: contratos = [], isLoading: isLoadingContratos } =
-    contratosQuery;
+  const { data: contratos = [], isLoading: isLoadingContratos } = contratosQuery;
 
   const contratoSeleccionado = contratos.find((c) => c.id === contratoIdWatch);
   const horasDisponibles = contratoSeleccionado?.horas_disponibles ?? 0;
+  const contratoFechaFinVigente = contratoSeleccionado
+    ? getContratoFechaFinVigente(contratoSeleccionado)
+    : undefined;
+
   const excede =
     horasProyectadasWatch != null && horasProyectadasWatch > horasDisponibles;
+
+  const fechaFinExceedsContrato =
+    fechaFinWatch &&
+    contratoFechaFinVigente &&
+    new Date(fechaFinWatch) > contratoFechaFinVigente;
 
   const usoMensualWatch = watch("uso_mensual");
   const totalDistribuido = parseFloat(
@@ -198,6 +221,17 @@ export default function ProyectosPage({
   const faltaDistribuir =
     horasProyectadasWatch > 0 &&
     horasProyectadasWatch - totalDistribuido > 0.001;
+
+  const regenerateMonths = (inicio: Date | undefined, fin: Date | undefined) => {
+    if (inicio && fin && fin >= inicio) {
+      const months = getMonthsFromRange(inicio, fin);
+      replace(
+        months.map((m) => ({ anio: m.anio, mes: m.mes, horas_estimadas: undefined })),
+      );
+    } else {
+      replace([]);
+    }
+  };
 
   if (isLoading || !data)
     return (
@@ -248,19 +282,27 @@ export default function ProyectosPage({
     setUiFilters({});
   };
 
+  const resetNewForm = () => {
+    setStep(1);
+    setFechaInicioDate(undefined);
+    setFechaFinDate(undefined);
+    reset({
+      nombre: "",
+      area_id: undefined,
+      contrato_id: undefined,
+      horas_proyectadas: undefined,
+      fecha_inicio: "",
+      fecha_fin: "",
+      uso_mensual: [],
+    });
+  };
+
   const onSubmitNuevoProyecto = (data: ProyectoData) => {
     startTransition(async () => {
       const res = await createProyecto(data);
       if (res.success) {
         setIsNewOpen(false);
-        setStep(1);
-        reset({
-          nombre: "",
-          area_id: undefined,
-          contrato_id: undefined,
-          horas_proyectadas: undefined,
-          uso_mensual: [],
-        });
+        resetNewForm();
         queryClient.invalidateQueries({ queryKey: proyectosKeys.all });
         queryClient.invalidateQueries({ queryKey: ["contratos-select"] });
         queryClient.invalidateQueries({ queryKey: resumenKeys.all });
@@ -278,6 +320,10 @@ export default function ProyectosPage({
       }
     });
   };
+
+  const columns = getProyectosColumns({
+    onAgregarProrroga: (proyecto) => setProyectoParaProrroga(proyecto),
+  });
 
   return (
     <>
@@ -309,10 +355,7 @@ export default function ProyectosPage({
             </div>
           </div>
           <div className="col-span-12">
-            <DataTable
-              columns={Proyectoscolumns}
-              data={data?.data as TProyecto[]}
-            />
+            <DataTable columns={columns} data={data?.data as TProyecto[]} />
             <Pagination
               currentPage={filters.page}
               totalPages={Math.ceil((data?.total ?? 0) / filters.limit)}
@@ -413,16 +456,7 @@ export default function ProyectosPage({
         open={isNewOpen}
         onOpenChange={(open) => {
           setIsNewOpen(open);
-          if (!open) {
-            setStep(1);
-            reset({
-              nombre: "",
-              area_id: undefined,
-              contrato_id: undefined,
-              horas_proyectadas: undefined,
-              uso_mensual: [],
-            });
-          }
+          if (!open) resetNewForm();
         }}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -441,24 +475,7 @@ export default function ProyectosPage({
             </DialogDescription>
           </DialogHeader>
 
-          {/* DialogBody */}
           <div>
-            {/* <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p>Horas proyectadas</p>
-                <p>{horasProyectadasWatch}</p>
-              </div>
-              <div>
-                <p>Horas restantes por asignar</p>
-                <p>
-                  {horasProyectadasWatch -
-                    (watch("uso_mensual") ?? []).reduce(
-                      (acc, month) => acc + (month.horas_estimadas ?? 0),
-                      0,
-                    )}
-                </p>
-              </div>
-            </div> */}
             <div className="flex flex-col gap-4">
               {step === 1 && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -472,9 +489,7 @@ export default function ProyectosPage({
                     />
                     {errors.nombre && (
                       <FieldError>
-                        <p className="flex items-center gap-2">
-                          {errors.nombre.message}
-                        </p>
+                        <p>{errors.nombre.message}</p>
                       </FieldError>
                     )}
                   </Field>
@@ -517,16 +532,22 @@ export default function ProyectosPage({
                         setValue("contrato_id", contrato?.id as number, {
                           shouldValidate: true,
                         });
+                        // Pre-fill fecha_inicio with contract's start date
                         if (contrato) {
-                          const months = getMonthsFromContrato(contrato);
-                          replace(
-                            months.map((m) => ({
-                              anio: m.anio,
-                              mes: m.mes,
-                              horas_estimadas: undefined,
-                            })),
-                          );
+                          const contratoInicio = new Date(contrato.fecha_inicio);
+                          setFechaInicioDate(contratoInicio);
+                          setValue("fecha_inicio", format(contratoInicio, "yyyy-MM-dd"), {
+                            shouldValidate: true,
+                          });
+                          // Reset fecha_fin and months when contract changes
+                          setFechaFinDate(undefined);
+                          setValue("fecha_fin", "", { shouldValidate: false });
+                          replace([]);
                         } else {
+                          setFechaInicioDate(undefined);
+                          setFechaFinDate(undefined);
+                          setValue("fecha_inicio", "");
+                          setValue("fecha_fin", "");
                           replace([]);
                         }
                       }}
@@ -586,6 +607,127 @@ export default function ProyectosPage({
                       )}
                     </Field>
                   )}
+                  {contratoIdWatch && (
+                    <>
+                      <Field>
+                        <FieldLabel>Fecha de inicio</FieldLabel>
+                        <Popover open={openFechaInicio} onOpenChange={setOpenFechaInicio}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !fechaInicioDate && "text-muted-foreground",
+                                errors.fecha_inicio &&
+                                  "border-destructive focus:ring-destructive/20 focus:ring-3",
+                              )}>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {fechaInicioDate
+                                ? format(fechaInicioDate, "dd/MM/yyyy")
+                                : "Seleccionar fecha"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              captionLayout="dropdown"
+                              startMonth={new Date(2020, 0)}
+                              endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                              disabled={(date) => {
+                                if (contratoSeleccionado) {
+                                  const minDate = new Date(contratoSeleccionado.fecha_inicio);
+                                  if (date < minDate) return true;
+                                  if (contratoFechaFinVigente && date > contratoFechaFinVigente)
+                                    return true;
+                                }
+                                return false;
+                              }}
+                              selected={fechaInicioDate}
+                              onSelect={(date) => {
+                                setFechaInicioDate(date);
+                                setValue(
+                                  "fecha_inicio",
+                                  date ? format(date, "yyyy-MM-dd") : "",
+                                  { shouldValidate: true },
+                                );
+                                setOpenFechaInicio(false);
+                                regenerateMonths(date, fechaFinDate);
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        {errors.fecha_inicio && (
+                          <FieldError>
+                            <p>{errors.fecha_inicio.message}</p>
+                          </FieldError>
+                        )}
+                      </Field>
+                      <Field>
+                        <FieldLabel>
+                          Fecha de fin{" "}
+                          {contratoFechaFinVigente && (
+                            <span className="text-muted-foreground font-normal">
+                              (máx. {format(contratoFechaFinVigente, "dd/MM/yyyy")})
+                            </span>
+                          )}
+                        </FieldLabel>
+                        <Popover open={openFechaFin} onOpenChange={setOpenFechaFin}>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className={cn(
+                                "w-full justify-start text-left font-normal",
+                                !fechaFinDate && "text-muted-foreground",
+                                (errors.fecha_fin || fechaFinExceedsContrato) &&
+                                  "border-destructive focus:ring-destructive/20 focus:ring-3",
+                              )}>
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {fechaFinDate
+                                ? format(fechaFinDate, "dd/MM/yyyy")
+                                : "Seleccionar fecha"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              captionLayout="dropdown"
+                              startMonth={new Date(2020, 0)}
+                              endMonth={new Date(new Date().getFullYear() + 5, 11)}
+                              disabled={(date) => {
+                                if (fechaInicioDate && date < fechaInicioDate) return true;
+                                if (contratoFechaFinVigente && date > contratoFechaFinVigente)
+                                  return true;
+                                return false;
+                              }}
+                              selected={fechaFinDate}
+                              onSelect={(date) => {
+                                setFechaFinDate(date);
+                                setValue(
+                                  "fecha_fin",
+                                  date ? format(date, "yyyy-MM-dd") : "",
+                                  { shouldValidate: true },
+                                );
+                                setOpenFechaFin(false);
+                                regenerateMonths(fechaInicioDate, date);
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        {fechaFinExceedsContrato && (
+                          <FieldError>
+                            <p>La fecha de fin no puede superar la del contrato</p>
+                          </FieldError>
+                        )}
+                        {errors.fecha_fin && !fechaFinExceedsContrato && (
+                          <FieldError>
+                            <p>{errors.fecha_fin.message}</p>
+                          </FieldError>
+                        )}
+                      </Field>
+                    </>
+                  )}
                 </div>
               )}
 
@@ -625,7 +767,7 @@ export default function ProyectosPage({
                     })}
                   </div>
                   {horasProyectadasWatch > 0 && (
-                    <div className="text-sm text-right space-y-1">
+                    <div className="text-sm text-right flex flex-col gap-1">
                       <p className="text-muted-foreground">
                         Total distribuido:{" "}
                         <span
@@ -652,9 +794,7 @@ export default function ProyectosPage({
                           <p>
                             Superás las horas proyectadas por{" "}
                             {parseFloat(
-                              (totalDistribuido - horasProyectadasWatch).toFixed(
-                                6,
-                              ),
+                              (totalDistribuido - horasProyectadasWatch).toFixed(6),
                             ).toLocaleString("es-AR", {
                               maximumFractionDigits: 2,
                             })}{" "}
@@ -676,9 +816,7 @@ export default function ProyectosPage({
                           <p>
                             Faltan distribuir{" "}
                             {parseFloat(
-                              (horasProyectadasWatch - totalDistribuido).toFixed(
-                                6,
-                              ),
+                              (horasProyectadasWatch - totalDistribuido).toFixed(6),
                             ).toLocaleString("es-AR", {
                               maximumFractionDigits: 2,
                             })}{" "}
@@ -704,15 +842,17 @@ export default function ProyectosPage({
                 <Button
                   type="button"
                   variant="primary"
-                  disabled={excede}
+                  disabled={excede || !!fechaFinExceedsContrato}
                   onClick={async () => {
                     const ok = await trigger([
                       "nombre",
                       "area_id",
                       "contrato_id",
                       "horas_proyectadas",
+                      "fecha_inicio",
+                      "fecha_fin",
                     ]);
-                    if (ok && !excede) setStep(2);
+                    if (ok && !excede && !fechaFinExceedsContrato) setStep(2);
                   }}>
                   Siguiente
                 </Button>
@@ -743,6 +883,15 @@ export default function ProyectosPage({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Modal prórroga de proyecto */}
+      {proyectoParaProrroga && (
+        <ProyectoProrrogaFormModal
+          proyecto={proyectoParaProrroga}
+          open={!!proyectoParaProrroga}
+          onClose={() => setProyectoParaProrroga(null)}
+        />
+      )}
     </>
   );
 }

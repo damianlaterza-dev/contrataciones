@@ -26,6 +26,8 @@ export const proyectoSchema = z
     horas_proyectadas: z
       .number({ error: "Ingresá un valor válido" })
       .positive("Debe ser mayor a 0"),
+    fecha_inicio: z.string().min(1, "La fecha de inicio es requerida"),
+    fecha_fin: z.string().min(1, "La fecha de fin es requerida"),
     uso_mensual: z
       .array(usoMensualItemSchema)
       .superRefine((items, ctx) => {
@@ -53,6 +55,16 @@ export const proyectoSchema = z
   )
   .refine(
     (data) => {
+      if (!data.fecha_inicio || !data.fecha_fin) return true;
+      return new Date(data.fecha_fin) >= new Date(data.fecha_inicio);
+    },
+    {
+      message: "La fecha de fin debe ser posterior a la fecha de inicio",
+      path: ["fecha_fin"],
+    },
+  )
+  .refine(
+    (data) => {
       if (!data.horas_proyectadas) return true;
       const total = parseFloat(
         (data.uso_mensual ?? [])
@@ -70,3 +82,21 @@ export const proyectoSchema = z
 
 export type ProyectoData = z.infer<typeof proyectoSchema>;
 export type UsoMensualItem = z.infer<typeof usoMensualItemSchema>;
+
+export const proyectoProrrogaSchema = z.object({
+  proyecto_id: z.number().int().positive("El proyecto es requerido"),
+  fecha_fin: z.string().min(1, "La fecha de fin es requerida"),
+  numero_expediente: z.string().max(100).optional().nullable(),
+  observacion: z.string().max(1000).optional().nullable(),
+  uso_mensual: z.array(
+    z.object({
+      anio: z.number().int(),
+      mes: z.number().int().min(1).max(12),
+      horas_estimadas: z
+        .number({ error: "Ingresá un valor válido" })
+        .min(0, "Debe ser 0 o mayor"),
+    }),
+  ),
+});
+
+export type ProyectoProrrogaData = z.infer<typeof proyectoProrrogaSchema>;

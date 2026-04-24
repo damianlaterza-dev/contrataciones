@@ -26,6 +26,7 @@ export async function getProyectosWithFilters(filters: ProyectosFilters) {
     orderBy: { id: "desc" },
     include: {
       areas: true,
+      proyecto_prorrogas: { orderBy: { created_at: "asc" } },
       contrato_proyectos: {
         include: {
           contratos: {
@@ -40,9 +41,11 @@ export async function getProyectosWithFilters(filters: ProyectosFilters) {
               es_accesoridad: true,
               contrato_principal_id: true,
               observaciones: true,
+              prorrogas: { select: { fecha_fin: true }, orderBy: { created_at: "asc" } },
               proveedores: { select: { id: true, label: true } },
             },
           },
+          uso_mensual: true,
         },
       },
     },
@@ -50,16 +53,32 @@ export async function getProyectosWithFilters(filters: ProyectosFilters) {
 
   const total = await prisma.proyectos.count({ where });
 
-  const data = rawData.map((proyecto) => ({
-    ...proyecto,
-    contrato_proyectos: proyecto.contrato_proyectos.map((cp) => ({
-      ...cp,
-      contratos: {
-        ...cp.contratos,
-        valor_hora: cp.contratos.valor_hora?.toNumber() ?? null,
-      },
-    })),
-  }));
+  const data = rawData.map((proyecto) => {
+    const ultimaProrroga = proyecto.proyecto_prorrogas.at(-1);
+    const fecha_fin_vigente = ultimaProrroga?.fecha_fin ?? proyecto.fecha_fin;
+
+    const horasDistribuidas = proyecto.contrato_proyectos.reduce((sum, cp) => {
+      return (
+        sum +
+        cp.uso_mensual.reduce((s, u) => s + (u.horas_estimadas ?? 0), 0)
+      );
+    }, 0);
+
+    return {
+      ...proyecto,
+      fecha_fin_vigente,
+      horas_distribuidas: horasDistribuidas,
+      contrato_proyectos: proyecto.contrato_proyectos.map((cp) => ({
+        ...cp,
+        contratos: {
+          ...cp.contratos,
+          valor_hora: cp.contratos.valor_hora?.toNumber() ?? null,
+          fecha_fin_vigente:
+            cp.contratos.prorrogas.at(-1)?.fecha_fin ?? cp.contratos.fecha_fin,
+        },
+      })),
+    };
+  });
 
   return { data, total };
 }
